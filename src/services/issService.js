@@ -1,8 +1,22 @@
-const ISS_URL = 'http://api.open-notify.org/iss-now.json';
-const ASTROS_URL = 'http://api.open-notify.org/astros.json';
+const ISS_PROXY_URL = '/api/iss-now';
+const ASTROS_PROXY_URL = '/api/astros';
+const ISS_FALLBACK_URL = 'http://api.open-notify.org/iss-now.json';
+const ASTROS_FALLBACK_URL = 'http://api.open-notify.org/astros.json';
+
+async function fetchWithFallback(primaryUrl, fallbackUrl) {
+  try {
+    const primary = await fetch(primaryUrl);
+    if (primary.ok) return primary;
+  } catch {
+    // Ignore and try fallback.
+  }
+
+  const fallback = await fetch(fallbackUrl);
+  return fallback;
+}
 
 export async function fetchIssNow() {
-  const response = await fetch(ISS_URL);
+  const response = await fetchWithFallback(ISS_PROXY_URL, ISS_FALLBACK_URL);
   if (!response.ok) {
     throw new Error('ISS API unavailable');
   }
@@ -16,7 +30,7 @@ export async function fetchIssNow() {
 }
 
 export async function fetchAstronauts() {
-  const response = await fetch(ASTROS_URL);
+  const response = await fetchWithFallback(ASTROS_PROXY_URL, ASTROS_FALLBACK_URL);
   if (!response.ok) {
     throw new Error('Astronaut API unavailable');
   }
